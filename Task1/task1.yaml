@@ -1,0 +1,56 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+    name: nginx-config
+data:
+    nginx.conf: |
+    events {}
+    http {
+    server {
+    listen 82;
+    root /usr/share/nginx/html;
+    index index.html;
+    location /_{
+    try_files \$uri \$uri/ =404;
+    }
+    }
+}
+---------------
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: nginx-pv
+spec:
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: /data/nginx-content
+  persistentVolumeReclaimPolicy: Retain
+
+# nginx-pvc.yaml (corrected)
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: nginx-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+
+-------------------------
+
+apiVersion: vi
+kind: Service
+metadata:
+    name: nginx-service
+spec:
+    selector:
+    app: nginx
+    ports:
+    - port: 80
+    targetPort: 82
+    type: ClusterIP
